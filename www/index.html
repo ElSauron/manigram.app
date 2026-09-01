@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Manigram, herkese açık Instagram içeriklerini hesapsız görüntüler.">
+  <title>Manigram</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; --ink: #000; --panel: #101010; --line: #242424; --muted: #8e8e93; --pink: #ff007f; --rose: #e1306c; }
+    * { box-sizing: border-box; }
+    html, body { min-width: 320px; min-height: 100%; margin: 0; background: var(--ink); }
+    body { color: #f5f5f5; font-family: ui-sans-serif, system-ui, sans-serif; }
+    button, input { font: inherit; }
+    .safe-top { padding-top: max(12px, env(safe-area-inset-top)); }
+    .safe-bottom { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    .app-shell { min-height: 100svh; padding-bottom: 78px; }
+    .screen { display: none; }
+    .screen.is-active { display: block; }
+    .topbar { background: rgb(0 0 0 / .9); backdrop-filter: blur(16px); }
+    .bottom-nav { background: rgb(0 0 0 / .95); backdrop-filter: blur(18px); }
+    .nav-item.is-active { color: #fff; }
+    .nav-item.is-active .nav-icon { color: var(--pink); text-shadow: 0 0 14px rgb(255 0 127 / .75); }
+    .feed-card + .feed-card { border-top: 1px solid var(--line); }
+    .post-media { aspect-ratio: 1 / 1.05; object-fit: cover; background: #171717; }
+    .explore-tile { aspect-ratio: 1; overflow: hidden; background: #171717; }
+    .explore-tile img { transition: transform .28s ease; }
+    .explore-tile:focus-visible img, .explore-tile:hover img { transform: scale(1.05); }
+    .reels-list { scroll-snap-type: y mandatory; }
+    .reel-card { min-height: calc(100svh - 160px); scroll-snap-align: start; }
+    .modal { background: rgb(0 0 0 / .78); }
+    .modal-card { background: #171717; }
+    .pink-glow { color: var(--pink); text-shadow: 0 0 18px rgb(255 0 127 / .65); }
+    @keyframes appear { from { opacity: .2; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .feed-card { animation: appear .35s ease both; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell mx-auto max-w-2xl">
+    <header class="topbar safe-top sticky top-0 z-30 border-b border-white/10 px-4 pb-3">
+      <div class="flex items-center justify-between gap-4">
+        <a class="pink-glow font-serif text-[27px] tracking-[-.04em]" href="#akış" aria-label="Manigram ana sayfa">Manigram<span class="text-[#e1306c]">.</span></a>
+        <div class="flex items-center gap-4 text-white/80">
+          <button id="header-search" type="button" aria-label="Herkese açık profil ara" class="text-2xl leading-none hover:text-white">⌕</button>
+          <button id="header-activity" type="button" aria-label="Mesajlar" class="text-xl leading-none hover:text-white">✉</button>
+        </div>
+      </div>
+      <form id="top-search-form" class="mt-3 flex items-center gap-2 rounded-xl bg-[#171717] px-3 py-2" role="search">
+        <span class="text-lg text-white/50" aria-hidden="true">⌕</span>
+        <label class="sr-only" for="top-search">Herkese açık kullanıcı adı</label>
+        <input id="top-search" class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/40" placeholder="Kullanıcı adı ara" autocomplete="off" autocapitalize="none" spellcheck="false">
+      </form>
+    </header>
+
+    <section id="feed-screen" class="screen is-active" aria-labelledby="feed-title">
+      <h1 id="feed-title" class="sr-only">Akış</h1>
+      <div id="stories" class="border-b border-white/10 px-4 py-4"></div>
+      <div id="feed" aria-live="polite"><div id="initial-loading" class="flex flex-col items-center gap-4 px-5 py-20 text-center"><span class="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#ff007f]" aria-hidden="true"></span><p class="text-sm text-white/55">Canlı herkese açık akış yükleniyor...</p></div></div>
+    </section>
+
+    <section id="explore-screen" class="screen px-3 pt-4" aria-labelledby="explore-title">
+      <h1 id="explore-title" class="mb-4 font-serif text-3xl">Keşfet</h1>
+      <form id="explore-search-form" class="mb-3 flex items-center gap-3 rounded-xl bg-[#1a1a1a] px-4 py-3 focus-within:ring-1 focus-within:ring-[#ff007f]" role="search">
+        <span class="text-xl text-white/60" aria-hidden="true">⌕</span>
+        <label class="sr-only" for="profile-search">Herkese açık kullanıcı adı ara</label>
+        <input id="profile-search" class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/40" placeholder="Herkese açık kullanıcı adı" autocomplete="off" autocapitalize="none" spellcheck="false">
+        <button id="search-submit" type="submit" class="font-bold uppercase tracking-[.15em] text-[#ff007f]">Ara</button>
+      </form>
+      <p class="flex min-h-6 items-center gap-2 px-1 text-xs text-white/50" role="status" aria-live="polite"><span id="search-spinner" class="hidden h-3 w-3 animate-spin rounded-full border border-white/20 border-t-[#ff007f]" aria-hidden="true"></span><span id="search-status"></span></p>
+      <div id="explore-grid" class="grid grid-cols-3 gap-1" aria-label="Gerçek herkese açık medya sonuçları"></div>
+    </section>
+
+    <section id="reels-screen" class="screen px-3 pt-4" aria-labelledby="reels-title">
+      <h1 id="reels-title" class="mb-4 font-serif text-3xl">Reels</h1>
+      <div id="reels-list" class="reels-list max-h-[calc(100svh-160px)] snap-y overflow-y-auto"></div>
+    </section>
+
+    <section id="profile-screen" class="screen px-4 pt-8" aria-labelledby="profile-title">
+      <div id="profile-details"></div>
+    </section>
+
+    <p id="global-status" class="px-4 py-4 text-center text-xs text-white/45" role="status" aria-live="polite"></p>
+
+    <nav class="bottom-nav safe-bottom fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-2xl items-center justify-around border-t border-white/10 px-2 pt-2" aria-label="Ana menü">
+      <button class="nav-item is-active flex min-w-16 flex-col items-center gap-1 py-1 text-white/45" data-screen="feed-screen" type="button" aria-label="Akış"><span class="nav-icon text-xl leading-5">⌂</span><span class="text-[10px] font-semibold">Akış</span></button>
+      <button class="nav-item flex min-w-16 flex-col items-center gap-1 py-1 text-white/45" data-screen="explore-screen" type="button" aria-label="Keşfet"><span class="nav-icon text-xl leading-5">⌕</span><span class="text-[10px] font-semibold">Keşfet</span></button>
+      <button class="nav-item flex min-w-16 flex-col items-center gap-1 py-1 text-white/45" data-screen="reels-screen" type="button" aria-label="Reels"><span class="nav-icon text-xl leading-5">▶</span><span class="text-[10px] font-semibold">Reels</span></button>
+      <button class="nav-item flex min-w-16 flex-col items-center gap-1 py-1 text-white/45" data-screen="profile-screen" type="button" aria-label="Profil"><span class="nav-icon text-xl leading-5">◎</span><span class="text-[10px] font-semibold">Profil</span></button>
+    </nav>
+  </div>
+
+  <div id="caption-modal" class="modal fixed inset-0 z-50 hidden items-end justify-center p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="caption-title">
+    <div class="modal-card w-full max-w-lg rounded-2xl border border-white/10 p-5">
+      <div class="flex items-start justify-between gap-4"><div><p id="caption-author" class="text-xs font-bold uppercase tracking-[.18em] text-[#ff007f]"></p><h2 id="caption-title" class="mt-2 font-serif text-2xl">Gönderi açıklaması</h2></div><button id="caption-close" type="button" class="text-2xl text-white/50" aria-label="Açıklamayı kapat">&times;</button></div>
+      <p id="caption-copy" class="mt-5 whitespace-pre-wrap text-sm leading-6 text-white/70"></p>
+      <a id="caption-link" class="mt-5 inline-block text-xs font-bold uppercase tracking-[.16em] text-[#ff007f]" href="#" target="_blank" rel="noopener noreferrer">Herkese açık gönderiyi aç &rarr;</a>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

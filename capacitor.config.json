@@ -1,0 +1,6 @@
+{
+  "appId": "com.manigram.app",
+  "appName": "Manigram",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
